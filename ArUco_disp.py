@@ -63,7 +63,7 @@ def aruco_display(corners, ids, rejected, image):
 			
 	return image
 
-aruco_type = "DICT_4X4_250"
+aruco_type = "DICT_4X4_1000"
 
 arucoDict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT.get(aruco_type))
 # arucoDict= cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_250)
@@ -71,7 +71,7 @@ arucoParams = cv2.aruco.DetectorParameters()
 
 print(f"path {os.getcwd()}")
 curd = os.getcwd()
-disp_img_path = os.path.join(curd, "module\image")
+disp_img_path = os.path.join(curd, "./image")
 print(disp_img_path)
 disp_img_list=[]
 
@@ -99,10 +99,16 @@ for i in disp_img_list:
 
     corners, ids, rejected = cv2.aruco.detectMarkers(disp_img, arucoDict, parameters=arucoParams)
     detected_markers = aruco_display(corners, ids, rejected, disp_img)
-
-	
+    width=1000
+    height = 1000
+    disp_img = cv2.resize(disp_img, (width, height), interpolation=cv2.INTER_CUBIC)
 	
     #cv2.imshow("Marker_detect", detected_markers)
-    plt.imshow(disp_img)
-    plt.show()
-    print("hello world")
+    cv2.imshow("aruco", disp_img)
+    cv2.waitKey(0)
+
+   # key = cv2.waitKey(1) & 0xFF
+    #if key == ord("q"):
+     #   break
+
+
