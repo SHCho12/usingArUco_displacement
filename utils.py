@@ -78,18 +78,18 @@ def order_points(pts):
     (rm1, rm2) = rightMost[np.argsort(rightMost[:, 1]), :]
     return np.array([lm1, lm2, rm1, rm2])
 
-def homography_transformation(corners, dest_circles, p_length = 50) : 
+def homography_transformation(corners, dest_cn, p_length = 50) : 
         
         cn_matrix = np.array([
-            [corners[0][0], corners[0][1]],
-            [corners[1][0], corners[1][1]],
-            [corners[2][0], corners[2][1]],
-            [corners[3][0], corners[3][1]]
+            [np.array(corners[0][0]), np.array(corners[0][1])],
+            [np.array(corners[1][0]), np.array(corners[1][1])],
+            [np.array(corners[2][0]), np.array(corners[2][1])],
+            [np.array(corners[3][0]), np.array(corners[3][1])]
         ])
-
+        
         # x value를 기준으로 sort 진행
         cn_matrix = order_points(cn_matrix)
-        dest_circles = order_points(dest_circles)
+        dest_cn = order_points(dest_cn)
 
 
         # p_length에 따른 weight matrix 생성
@@ -106,30 +106,30 @@ def homography_transformation(corners, dest_circles, p_length = 50) :
         
 
         
-        # #############################################
-        # ## dest 전처리
-        # dest_vec1 = np.array([[dest_circles[0][0]], [dest_circles[0][1]], [1]])
-        # dest_vec2 = np.array([[dest_circles[1][0]], [dest_circles[1][1]], [1]])
-        # dest_vec3 = np.array([[dest_circles[2][0]], [dest_circles[2][1]], [1]])
-        # dest_vec4 = np.array([[dest_circles[3][0]], [dest_circles[3][1]], [1]])
+        #############################################
+        ## dest 전처리
+        dest_vec1 = np.array([[dest_cn[0][0]], [dest_cn[0][1]], [1]])
+        dest_vec2 = np.array([[dest_cn[1][0]], [dest_cn[1][1]], [1]])
+        dest_vec3 = np.array([[dest_cn[2][0]], [dest_cn[2][1]], [1]])
+        dest_vec4 = np.array([[dest_cn[3][0]], [dest_cn[3][1]], [1]])
 
-        # ## dest에 h_matrix 적용 (with inner product)
-        # dist_1 = np.dot(h_matrix, dest_vec1)
-        # dist_1 = dist_1 / dist_1[2]
+        ## dest에 h_matrix 적용 (with inner product)
+        dist_1 = np.dot(h_matrix, dest_vec1)
+        dist_1 = dist_1 / dist_1[2]
         
-        # dist_2 = np.dot(h_matrix, dest_vec2)
-        # dist_2 = dist_2 / dist_2[2]
+        dist_2 = np.dot(h_matrix, dest_vec2)
+        dist_2 = dist_2 / dist_2[2]
 
-        # dist_3 = np.dot(h_matrix, dest_vec3)
-        # dist_3 = dist_3 / dist_3[2]
+        dist_3 = np.dot(h_matrix, dest_vec3)
+        dist_3 = dist_3 / dist_3[2]
 
-        # dist_4 = np.dot(h_matrix, dest_vec4)
-        # dist_4 = dist_4 / dist_4[2]
+        dist_4 = np.dot(h_matrix, dest_vec4)
+        dist_4 = dist_4 / dist_4[2]
 
-        # ## 결과 도출 - result
-        # result = (dist_1 + dist_2 + dist_3 + dist_4) / 4 - np.array([[p_length/4], [p_length/4], [1]])
+        ## 결과 도출 - result
+        result = (dist_1 + dist_2 + dist_3 + dist_4) / 4 - np.array([[p_length/4], [p_length/4], [1]])
 
-        return h_matrix, #result[:2]        
+        return h_matrix, result[:2]        
 
 def plotAPCA(op, X1, PC, Q, anomal_occur): 
     
@@ -524,10 +524,10 @@ def adaptiveThreshold_3ch(img, kernel_size) :
     
     return img
 
-## Function that find four valid circles in dest_circles
-def find_valid_dest_circles(dest_circles):
+## Function that find four valid circles in dest_cn
+def find_valid_dest_circles(dest_cn):
     ## I. 상위 4개 원을 x value를 기준으로 sort 진행
-    target = dest_circles[0:4] # 상위 4개 원 추출
+    target = dest_cn[0:4] # 상위 4개 원 추출
     target = target[target[:,0].argsort()] # 이에 대해 sort
 
     x = target[:, 0] # extract x value of circles - get col vector
@@ -542,11 +542,11 @@ def find_valid_dest_circles(dest_circles):
     # ISSUE: BH님이 말씀하신 criteria가 이것이 맞는지?
     # A : 넵 전달드린 criteria를 정확하게 작성해주셨습니다. 
     if (x_dist < 10.0) and (y_dist < 10.0): # nice case
-        return dest_circles[0:4]
+        return dest_cn[0:4]
     
     ## III. 탐지된 원들 내에서 4개의 원을 추출하는 모든 경우의 수에 따라 원의 집합을 생성
     ## combination으로 계산되어도 문제 없습니다. 
-    comb = combinations(dest_circles, 4) # [[[x1, y1, r1], [x2, y2, r2], ...], [4], [4], [4], ...]
+    comb = combinations(dest_cn, 4) # [[[x1, y1, r1], [x2, y2, r2], ...], [4], [4], [4], ...]
     # IV. 각 원의 집합들에 대하여 2번 과정에 대한 연산을 수행
     dist_list = []
     elem_list = []

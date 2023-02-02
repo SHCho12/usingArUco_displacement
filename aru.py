@@ -13,7 +13,7 @@ class cornersdp :
         """
         
         
-        self.ARUCO_DICT = {
+        ARUCO_DICT = {
                             "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
                             "DICT_4X4_100": cv2.aruco.DICT_4X4_100,
                             "DICT_4X4_250": cv2.aruco.DICT_4X4_250,
@@ -38,7 +38,7 @@ class cornersdp :
                             }
         aruco_type = "DICT_4X4_1000"
 
-        arucoDict = cv2.aruco.getPredefinedDictionary(self.ARUCO_DICT.get(aruco_type))
+        arucoDict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT.get(aruco_type))
         arucoParams = cv2.aruco.DetectorParameters()
 
 
@@ -50,19 +50,19 @@ class cornersdp :
 
         for (root, directories, files) in os.walk(disp_img_path):
             for file in files:
-                if '.JPG' in file:
+                if '.png' in file:
                     file_path = os.path.join(root, file)
                     print(file_path)
                     self.disp_img_list.append(file_path)
 
         print(f"img_list: {self.disp_img_list}")        
-    
-        disp_img = cv2.imread(self.disp_img_list[3])
+        
+        disp_img = cv2.imread(self.disp_img_list[0])
         corners, ids, rejected = cv2.aruco.detectMarkers(disp_img, arucoDict, parameters=arucoParams)
         detected_markers,topRight, bottomRight, topLeft, bottomLeft = aruco_display(corners, ids, rejected, disp_img)
         width=1000
         height = 1000
-        disp_img = cv2.resize(disp_img, (width, height), interpolation=cv2.INTER_CUBIC)
+        # disp_img = cv2.resize(disp_img, (width, height), interpolation=cv2.INTER_CUBIC)
         print(f"{topRight}, {topLeft}, {bottomLeft}, {bottomRight}")
 
         corners = np.array([topLeft, bottomLeft, topRight, bottomRight])
@@ -70,8 +70,28 @@ class cornersdp :
         cv2.imshow("aruco", disp_img)
         cv2.waitKey(0)
 
-        h_matrix=homography_transformation(corners,5.0, 5.0 )
-        print(f"{h_matrix}")
+        # h_matrix=homography_transformation(corners,5.0, 5.0 )
+        # print(f"{h_matrix}")
+        disp_img_2 = cv2.imread(self.disp_img_list[1])
+        corners_2, ids_2, rejected_2 = cv2.aruco.detectMarkers(disp_img_2, arucoDict, parameters=arucoParams)
+        detected_markers_2,topRight_2, bottomRight_2, topLeft_2, bottomLeft_2 = aruco_display(corners_2, ids_2, rejected_2, disp_img_2)
+        
+        cv2.imshow("aruco", disp_img_2)
+        cv2.waitKey(0)
+
+
+        dest_cn = np.array([topLeft_2, bottomLeft_2, topRight_2, bottomRight_2])
+        h_matrix, result = homography_transformation(corners, dest_cn, 50 ) 
+        # self.result_list.append(result)
+        
+    
+         
+
+        
+
+        
+        print(f"호모그래피 행렬: {h_matrix}")
+        print(f"계측된 변위 : {result}")
         """
         NOTE: 함수
         """
