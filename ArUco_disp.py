@@ -29,6 +29,7 @@ ARUCO_DICT = {
 	"DICT_APRILTAG_25h9": cv2.aruco.DICT_APRILTAG_25h9,
 	"DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
 	"DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
+	"DICT_APRILTAG"
     }
 
 
@@ -77,7 +78,7 @@ disp_img_list=[]
 
 for (root, directories, files) in os.walk(disp_img_path):
     for file in files:
-        if '.JPG' in file:
+        if '.JPG' and ".png" in file:
             file_path = os.path.join(root, file)
             print(file_path)
             disp_img_list.append(file_path)
@@ -102,6 +103,7 @@ for i in disp_img_list:
     width=1000
     height = 1000
     disp_img = cv2.resize(disp_img, (width, height), interpolation=cv2.INTER_CUBIC)
+    print(f'corners: {corners}')
 	
     #cv2.imshow("Marker_detect", detected_markers)
     cv2.imshow("aruco", disp_img)
