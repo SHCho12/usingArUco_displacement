@@ -26,37 +26,58 @@ from skimage.morphology import reconstruction
 from numpy import matlib
 
 def aruco_display(corners, ids, rejected, image):
-	if len(corners) > 0:
+    
+    if len(corners) > 0:
 		
-		ids = ids.flatten()
-		
-		for (markerCorner, markerID) in zip(corners, ids):
-			
-			corners = markerCorner.reshape((4, 2))
-			(topLeft, topRight, bottomRight, bottomLeft) = corners
-			
-			topRight = (int(topRight[0]), int(topRight[1]))
-			bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
-			bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
-			topLeft = (int(topLeft[0]), int(topLeft[1]))
+        ids = ids.flatten()
+
+        for (markerCorner, markerID) in zip(corners, ids):
+            corners = markerCorner.reshape((4, 2))
+            print(corners)           
+            (topL, topR, bottomR, bottomL) = corners
+           
+
+            tr = (int(topR[0]), int(topR[1]))
+            br = (int(bottomR[0]), int(bottomR[1]))
+            bl = (int(bottomL[0]), int(bottomL[1]))
+            tl = (int(topL[0]), int(topL[1]))
+            
+            tr = tr
+            br = br
+            bl = bl
+            tl = tl
             # print(f"{topRigh]t")
-			cv2.line(image, topLeft, topRight, (0, 255, 0), 2)
-			cv2.line(image, topRight, bottomRight, (0, 255, 0), 2)
-			cv2.line(image, bottomRight, bottomLeft, (0, 255, 0), 2)
-			cv2.line(image, bottomLeft, topLeft, (0, 255, 0), 2)
-			
-			cX = int((topLeft[0] + bottomRight[0] + topRight[0] + bottomLeft[0]) / 4.0)
-			cY = int((topLeft[1] + bottomRight[1] + topRight[1] + bottomLeft[1]) / 4.0)
-			cv2.circle(image, (cX, cY), 4, (0, 0, 255), -1)
-			print(f"cx, cy: {cX, cY}")
-			# print(f"{topRight}, {topLeft}, {bottomLeft}, {bottomRight}")
-            
-			cv2.putText(image, str(markerID),(topLeft[0], topLeft[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,
-				0.5, (0, 255, 0), 2)
-			print("[Inference] ArUco marker ID: {}".format(markerID))
-            
-			
-	return image, topRight, bottomRight, topLeft, bottomLeft
+            # cv2.line(image, topLeft, topRight, (0, 255, 0), 2)
+            # cv2.line(image, topRight, bottomRight, (0, 255, 0), 2)
+            # cv2.line(image, bottomRight, bottomLeft, (0, 255, 0), 2)
+            # cv2.line(image, bottomLeft, topLeft, (0, 255, 0), 2)
+
+            # cX = int((topLeft[0] + bottomRight[0] + topRight[0] + bottomLeft[0]) / 4.0)
+            # cY = int((topLeft[1] + bottomRight[1] + topRight[1] + bottomLeft[1]) / 4.0)
+            # cv2.circle(image, (cX, cY), 4, (0, 0, 255), -1)
+            # print(f"cx, cy: {cX, cY}")
+            # # print(f"{topRight}, {topLeft}, {bottomLeft}, {bottomRight}")
+
+            # cv2.putText(image, str(markerID),(topLeft[0], topLeft[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,
+            #     0.5, (0, 255, 0), 2)
+            # print("[Inference] ArUco marker ID: {}".format(markerID))
+	
+            return image, tr, br, bl, tl
+
+def return_corners(corners, ids, image):
+    if len(corners) > 0:
+        ids = ids.flatten()
+        for (markerCorner, markerID) in zip(corners, ids):
+            corners = markerCorner.reshape((4, 2))
+            (topLeft, topRight, bottomRight, bottomLeft) = corners
+
+            topRight = (int(topRight[0]), int(topRight[1]))
+            bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
+            bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
+            topLeft = (int(topLeft[0]), int(topLeft[1]))
+        
+    return image, topRight, bottomRight, topLeft, bottomLeft
+
 
 def order_points(pts):
     # sort the points based on their x-coordinates
@@ -77,6 +98,63 @@ def order_points(pts):
     # our bottom-right point
     (rm1, rm2) = rightMost[np.argsort(rightMost[:, 1]), :]
     return np.array([lm1, lm2, rm1, rm2])
+
+def get_displacements(h_matrix, dest_cn, p_length = 50) : 
+
+        # x value를 기준으로 sort 진행
+        dest_cn = order_points(dest_cn)
+
+        
+        #############################################
+        ## dest 전처리
+        dest_vec1 = np.array([[dest_cn[0][0]], [dest_cn[0][1]], [1]])
+        dest_vec2 = np.array([[dest_cn[1][0]], [dest_cn[1][1]], [1]])
+        dest_vec3 = np.array([[dest_cn[2][0]], [dest_cn[2][1]], [1]])
+        dest_vec4 = np.array([[dest_cn[3][0]], [dest_cn[3][1]], [1]])
+
+        ## dest에 h_matrix 적용 (with inner product)
+        dist_1 = np.dot(h_matrix, dest_vec1)
+        dist_1 = dist_1 / dist_1[2]
+        
+        dist_2 = np.dot(h_matrix, dest_vec2)
+        dist_2 = dist_2 / dist_2[2]
+
+        dist_3 = np.dot(h_matrix, dest_vec3)
+        dist_3 = dist_3 / dist_3[2]
+
+        dist_4 = np.dot(h_matrix, dest_vec4)
+        dist_4 = dist_4 / dist_4[2]
+
+        ## 결과 도출 - result
+        result = (dist_1 + dist_2 + dist_3 + dist_4) / 4 - np.array([[p_length/4], [p_length/4], [1]])
+
+        return result[:2]        
+
+
+def get_homography_transformation(corners, p_length): 
+        
+        cn_matrix = np.array([
+            [np.array(corners[0][0]), np.array(corners[0][1])],
+            [np.array(corners[1][0]), np.array(corners[1][1])],
+            [np.array(corners[2][0]), np.array(corners[2][1])],
+            [np.array(corners[3][0]), np.array(corners[3][1])]
+        ])
+        
+        # x value를 기준으로 sort 진행
+        cn_matrix = order_points(cn_matrix)
+       
+        # p_length에 따른 weight matrix 생성
+        wc = np.array([
+            [0, 0],
+            [0, p_length],
+            [p_length, 0],
+            [p_length, p_length]
+        ])
+        
+        # findHomography(src, desc, ...) 이용해서 호모그래피 matrix 찾기
+        h_matrix = findProjectiveTransform(cn_matrix, wc).T
+
+        return h_matrix    
 
 def homography_transformation(corners, dest_cn, p_length = 50) : 
         
@@ -130,7 +208,6 @@ def homography_transformation(corners, dest_cn, p_length = 50) :
         result = (dist_1 + dist_2 + dist_3 + dist_4) / 4 - np.array([[p_length/4], [p_length/4], [1]])
 
         return h_matrix, result[:2]        
-
 def plotAPCA(op, X1, PC, Q, anomal_occur): 
     
     """
