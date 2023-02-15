@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import os
 from utils import aruco_display,homography_transformation, get_displacements, get_homography_transformation
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from glob import glob
 
 # class cornersdp :
@@ -36,10 +36,12 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Arguments for Displacement Measurement')
 
+# img path (폴더 지정해주기)
 parser.add_argument(
-    '--img_path', type=str, default="image",
+    '--img_path', type=str, default="multiple_exp_100",
     help='Directory of Images for Displacement Measurement'
 )
+# img 파일 형식 지정
 parser.add_argument(
     '--img_ext', type=str, default="jpg",
     help='Image File Extension'
@@ -67,9 +69,9 @@ def main():
     detected_markers,topRight, bottomRight, topLeft, bottomLeft = aruco_display(corners, ids, rejected, disp_img)
     corners = np.array([topLeft, bottomLeft, topRight, bottomRight])
     
-
+    h_matrix_list = []
     displacement_list = []
-    for img_path in disp_img_list[1:]:
+    for img_path in disp_img_list[0:]:
         target_image = cv2.imread(img_path)
         target_points, target_ids, target_rejected = cv2.aruco.detectMarkers(target_image, arucoDict, parameters=arucoParams)
         detected_markers_2,target_TR, target_BR, target_TL, target_BL = aruco_display(target_points, target_ids, target_rejected, target_image)
@@ -79,10 +81,18 @@ def main():
         print(f"destcn :",dest_cn)
         h_matrix, displacement = homography_transformation(corners, dest_cn, 50) 
         displacement_list.append(displacement)
-            
+        h_matrix_list.append(h_matrix)
     
-    print(f"호모그래피 행렬: {h_matrix}")
+    print(f"호모그래피 행렬: {h_matrix_list}")
     print(f"계측된 변위 : {displacement_list}")
+    
+
+    
+    
+    #plt.title("y displacement")
+    #plt.xlabel("image")
+    #plt.ylabel("displacement")
+    #plt.show()
 
     
 if __name__ == "__main__" :

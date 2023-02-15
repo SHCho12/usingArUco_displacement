@@ -46,19 +46,19 @@ def aruco_display(corners, ids, rejected, image):
             br = br
             bl = bl
             tl = tl
-            # print(f"{topRigh]t")
-            # cv2.line(image, topLeft, topRight, (0, 255, 0), 2)
-            # cv2.line(image, topRight, bottomRight, (0, 255, 0), 2)
-            # cv2.line(image, bottomRight, bottomLeft, (0, 255, 0), 2)
-            # cv2.line(image, bottomLeft, topLeft, (0, 255, 0), 2)
+            
+            # cv2.line(image, tl, tr, (0, 255, 0), 2)
+            # cv2.line(image, tr, br, (0, 255, 0), 2)
+            # cv2.line(image, br, bl, (0, 255, 0), 2)
+            # cv2.line(image, bl, tl, (0, 255, 0), 2)
 
-            # cX = int((topLeft[0] + bottomRight[0] + topRight[0] + bottomLeft[0]) / 4.0)
-            # cY = int((topLeft[1] + bottomRight[1] + topRight[1] + bottomLeft[1]) / 4.0)
+            # cX = int((tl[0] + br[0] + tr[0] + bl[0]) / 4.0)
+            # cY = int((tl[1] + br[1] + tr[1] + bl[1]) / 4.0)
             # cv2.circle(image, (cX, cY), 4, (0, 0, 255), -1)
             # print(f"cx, cy: {cX, cY}")
-            # # print(f"{topRight}, {topLeft}, {bottomLeft}, {bottomRight}")
+            # # print(f"{tr}, {tl}, {bl}, {br}")
 
-            # cv2.putText(image, str(markerID),(topLeft[0], topLeft[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,
+            # cv2.putText(image, str(markerID),(tl[0], tl[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,
             #     0.5, (0, 255, 0), 2)
             # print("[Inference] ArUco marker ID: {}".format(markerID))
 	
@@ -69,14 +69,14 @@ def return_corners(corners, ids, image):
         ids = ids.flatten()
         for (markerCorner, markerID) in zip(corners, ids):
             corners = markerCorner.reshape((4, 2))
-            (topLeft, topRight, bottomRight, bottomLeft) = corners
+            (tl, tr, br, bl) = corners
 
-            topRight = (int(topRight[0]), int(topRight[1]))
-            bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
-            bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
-            topLeft = (int(topLeft[0]), int(topLeft[1]))
+            tr = (int(tr[0]), int(tr[1]))
+            br = (int(br[0]), int(br[1]))
+            bl = (int(bl[0]), int(bl[1]))
+            tl = (int(tl[0]), int(tl[1]))
         
-    return image, topRight, bottomRight, topLeft, bottomLeft
+    return image, tr, br, tl, bl
 
 
 def order_points(pts):
@@ -126,7 +126,7 @@ def get_displacements(h_matrix, dest_cn, p_length = 50) :
         dist_4 = dist_4 / dist_4[2]
 
         ## 결과 도출 - result
-        result = (dist_1 + dist_2 + dist_3 + dist_4) / 4 - np.array([[p_length/4], [p_length/4], [1]])
+        result = (dist_1 + dist_2 + dist_3 + dist_4) / 4 - np.array([[p_length/2], [p_length/2], [1]])
 
         return result[:2]        
 
@@ -156,7 +156,7 @@ def get_homography_transformation(corners, p_length):
 
         return h_matrix    
 
-def homography_transformation(corners, dest_cn, p_length = 50) : 
+def homography_transformation(corners, dest_cn, p_length) : 
         
         cn_matrix = np.array([
             [np.array(corners[0][0]), np.array(corners[0][1])],
@@ -205,7 +205,7 @@ def homography_transformation(corners, dest_cn, p_length = 50) :
         dist_4 = dist_4 / dist_4[2]
 
         ## 결과 도출 - result
-        result = (dist_1 + dist_2 + dist_3 + dist_4) / 4 - np.array([[p_length/4], [p_length/4], [1]])
+        result = (dist_1 + dist_2 + dist_3 + dist_4) / 4 - np.array([[p_length/2], [p_length/2], [1]])
 
         return h_matrix, result[:2]        
 def plotAPCA(op, X1, PC, Q, anomal_occur): 
