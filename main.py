@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import os
-from utils import aruco_display,homography_transformation, get_displacements, get_homography_transformation
+from utils import aruco_display,homography_transformation
 import matplotlib.pyplot as plt
 from glob import glob
 
@@ -38,7 +38,7 @@ parser = argparse.ArgumentParser(description='Arguments for Displacement Measure
 
 # img path (폴더 지정해주기)
 parser.add_argument(
-    '--img_path', type=str, default="multiple_exp_100",
+    '--img_path', type=str, default="multiple_exp_96",
     help='Directory of Images for Displacement Measurement'
 )
 # img 파일 형식 지정
@@ -47,6 +47,11 @@ parser.add_argument(
     help='Image File Extension'
 )
 
+# 타겟 크기 지정
+parser.add_argument(
+    '--p_length', type=int, default=50,
+    help='target size to milimeter'
+)
 
 
 
@@ -56,6 +61,7 @@ def main():
 
     img_path = args.img_path
     img_ext = args.img_ext
+    p_length = args.p_length
 
     disp_img_list = glob(os.path.join(img_path, "*." + img_ext))
     
@@ -79,7 +85,7 @@ def main():
 
         dest_cn = np.array([target_TL, target_BL, target_TR, target_BR])
         print(f"destcn :",dest_cn)
-        h_matrix, displacement = homography_transformation(corners, dest_cn, 50) 
+        h_matrix, displacement = homography_transformation(corners, dest_cn, p_length) 
         displacement_list.append(displacement)
         h_matrix_list.append(h_matrix)
     

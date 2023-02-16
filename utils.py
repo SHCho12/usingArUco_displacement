@@ -42,42 +42,51 @@ def aruco_display(corners, ids, rejected, image):
             bl = (int(bottomL[0]), int(bottomL[1]))
             tl = (int(topL[0]), int(topL[1]))
             
-            tr = tr
-            br = br
-            bl = bl
-            tl = tl
-            
-            # cv2.line(image, tl, tr, (0, 255, 0), 2)
-            # cv2.line(image, tr, br, (0, 255, 0), 2)
-            # cv2.line(image, br, bl, (0, 255, 0), 2)
-            # cv2.line(image, bl, tl, (0, 255, 0), 2)
-
-            # cX = int((tl[0] + br[0] + tr[0] + bl[0]) / 4.0)
-            # cY = int((tl[1] + br[1] + tr[1] + bl[1]) / 4.0)
-            # cv2.circle(image, (cX, cY), 4, (0, 0, 255), -1)
-            # print(f"cx, cy: {cX, cY}")
-            # # print(f"{tr}, {tl}, {bl}, {br}")
-
-            # cv2.putText(image, str(markerID),(tl[0], tl[1] - 10), cv2.FONT_HERSHEY_SIMPLEX,
-            #     0.5, (0, 255, 0), 2)
-            # print("[Inference] ArUco marker ID: {}".format(markerID))
+            # tr = tr
+            # br = br
+            # bl = bl
+            # tl = tl
 	
             return image, tr, br, bl, tl
 
-def return_corners(corners, ids, image):
+
+def draw_markers(corners, ids, rejected, image):
     if len(corners) > 0:
+		
         ids = ids.flatten()
+
         for (markerCorner, markerID) in zip(corners, ids):
             corners = markerCorner.reshape((4, 2))
-            (tl, tr, br, bl) = corners
+            print(corners)           
+            (topL, topR, bottomR, bottomL) = corners
+           
 
-            tr = (int(tr[0]), int(tr[1]))
-            br = (int(br[0]), int(br[1]))
-            bl = (int(bl[0]), int(bl[1]))
-            tl = (int(tl[0]), int(tl[1]))
-        
-    return image, tr, br, tl, bl
+            tr = (int(topR[0]), int(topR[1]))
+            br = (int(bottomR[0]), int(bottomR[1]))
+            bl = (int(bottomL[0]), int(bottomL[1]))
+            tl = (int(topL[0]), int(topL[1]))
+            
+            # tr = tr
+            # br = br
+            # bl = bl
+            # tl = tl
+            
+            cv2.line(image, tl, tr, (0,255,0), 10)
+            cv2.line(image, tr, br, (0,255,0), 10)
+            cv2.line(image, br, bl, (0,255,0), 10)
+            cv2.line(image, bl, tl, (0,255,0), 10)
 
+            cX= int((tl[0] + br[0] + tr[0]  + bl[0])/4.0)
+            cY= int((tl[1] + br[1] + tr[1]  + bl[1])/4.0)
+            cv2.circle(image, (cX, cY), 20, (0,0,255), -1)
+            cv2.putText(image, str(markerID), (tl[0], tl[1]-10), cv2.FONT_HERSHEY_SIMPLEX,
+            0.5, (0,255,0), 2)
+
+    return image
+
+
+		
+			
 
 def order_points(pts):
     # sort the points based on their x-coordinates
@@ -99,12 +108,11 @@ def order_points(pts):
     (rm1, rm2) = rightMost[np.argsort(rightMost[:, 1]), :]
     return np.array([lm1, lm2, rm1, rm2])
 
-def get_displacements(h_matrix, dest_cn, p_length = 50) : 
+def get_displacements(h_matrix, dest_cn, p_length) : 
 
         # x value를 기준으로 sort 진행
         dest_cn = order_points(dest_cn)
 
-        
         #############################################
         ## dest 전처리
         dest_vec1 = np.array([[dest_cn[0][0]], [dest_cn[0][1]], [1]])
@@ -131,7 +139,7 @@ def get_displacements(h_matrix, dest_cn, p_length = 50) :
         return result[:2]        
 
 
-def get_homography_transformation(corners, p_length): 
+def get_homography_transform(corners, p_length) : 
         
         cn_matrix = np.array([
             [np.array(corners[0][0]), np.array(corners[0][1])],
@@ -142,7 +150,8 @@ def get_homography_transformation(corners, p_length):
         
         # x value를 기준으로 sort 진행
         cn_matrix = order_points(cn_matrix)
-       
+
+
         # p_length에 따른 weight matrix 생성
         wc = np.array([
             [0, 0],
