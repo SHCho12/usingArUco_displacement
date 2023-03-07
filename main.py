@@ -92,13 +92,37 @@ def main():
     print(f"호모그래피 행렬: {h_matrix_list}")
     print(f"계측된 변위 : {displacement_list}")
     
+    x_list=[]
+    y_list=[]
+    for i in displacement_list:
+        pass
+        print(i)
+        print(type(i))
+        x_list.append(float(i[0]))
+        y_list.append(float(i[1]))
 
+    print(f"x: {x_list}, y: {y_list}") 
     
-    
-    #plt.title("y displacement")
-    #plt.xlabel("image")
-    #plt.ylabel("displacement")
-    #plt.show()
+    a = len(displacement_list)
+    b = list(range(a))
+
+
+    plt.xlabel("Image")
+    plt.ylabel("displacement")    
+    plt.plot(b, x_list, "bo--", label="x", marker="8")
+    plt.plot(b, y_list, "ro--", label="y", marker="^")
+    plt.title("Displacement")
+    for i, v in enumerate(b):
+        plt.text(v, x_list[i], x_list[i],
+                 color='blue',
+                 horizontalalignment='center',
+                 verticalalignment = 'top')
+        plt.text(v, y_list[i], y_list[i],
+                 color='red',
+                 horizontalalignment='center',
+                 verticalalignment='bottom')                      
+    plt.legend()
+    plt.show()
 
     
 if __name__ == "__main__" :

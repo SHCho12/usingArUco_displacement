@@ -68,22 +68,17 @@ def main():
     aruco_type = "DICT_4X4_1000"
     arucoDict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT.get(aruco_type))
     arucoParams = cv2.aruco.DetectorParameters()
-
-    disp_img = cv2.imread(disp_img_list[0])
 	
-    corners, ids, rejected = cv2.aruco.detectMarkers(disp_img, arucoDict, parameters=arucoParams)
-    detected_markers = draw_markers(corners, ids, rejected, disp_img)
-    # corners = np.array([topLeft, bottomLeft, topRight, bottomRight])
-
-
-    detected_markers = cv2.resize(detected_markers, (1000, 1000), interpolation=cv2.INTER_CUBIC)
-    cv2.imshow("Image", detected_markers)
+    for img_path in disp_img_list[0:]:
+        target_image = cv2.imread(img_path)
+        corners, ids, rejected = cv2.aruco.detectMarkers(target_image, arucoDict, parameters=arucoParams)
+        detected_markers = draw_markers(corners, ids, rejected, target_image)
+        
+        detected_markers = cv2.resize(detected_markers, (2000, 1500), interpolation=cv2.INTER_CUBIC)
+        cv2.imshow("Image", detected_markers)
+        cv2.waitKey(0)
     
-    while(True):
-        if cv2.waitKey(1)%0xFF == ord('x'):
-            cv2.destroyAllWindows()
-            break
-
+                
 
 if __name__ == "__main__" :
     main()

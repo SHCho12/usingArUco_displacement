@@ -2,8 +2,9 @@ import numpy as np
 import cv2
 import os
 from utils import aruco_display, get_displacements, get_homography_transform
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from glob import glob
+import pandas as pd
 
 # class cornersdp :
 
@@ -37,7 +38,7 @@ import argparse
 parser = argparse.ArgumentParser(description='Arguments for Displacement Measurement')
 
 parser.add_argument(
-    '--img_path', type=str, default="multiple_exp_96",
+    '--img_path', type=str, default="multiple_exp_98",
     help='Directory of Images for Displacement Measurement'
 )
 parser.add_argument(
@@ -84,11 +85,44 @@ def main():
 
         dest_cn = np.array([target_TL, target_BL, target_TR, target_BR])
         print(f"destcn :",dest_cn)
-        displacement = get_displacements(h_matrix, dest_cn, p_length) 
+        displacement = get_displacements(h_matrix, dest_cn, p_length)
+        displacement = np.round(displacement, 3) 
         displacement_list.append(displacement)
-
     
     print(f"계측된 변위 : {displacement_list}")
+    print(f"수 :  {len(displacement_list)}")
+    
+    x_list=[]
+    y_list=[]
+    for i in displacement_list:
+        pass
+        print(i)
+        print(type(i))
+        x_list.append(float(i[0]))
+        y_list.append(float(i[1]))
+
+    print(f"x: {x_list}, y: {y_list}") 
+    
+    a = len(displacement_list)
+    b = list(range(a))
+
+
+    plt.xlabel("Image")
+    plt.ylabel("displacement")    
+    plt.plot(b, x_list, "bo--", label="x", marker="8")
+    plt.plot(b, y_list, "ro--", label="y", marker="^")
+    plt.title("Displacement")
+    for i, v in enumerate(b):
+        plt.text(v, x_list[i], x_list[i],
+                 color='blue',
+                 horizontalalignment='center',
+                 verticalalignment = 'top')
+        plt.text(v, y_list[i], y_list[i],
+                 color='red',
+                 horizontalalignment='center',
+                 verticalalignment='bottom')                      
+    plt.legend()
+    plt.show()
 
 if __name__ == "__main__" :
     main()

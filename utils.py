@@ -66,11 +66,6 @@ def draw_markers(corners, ids, rejected, image):
             bl = (int(bottomL[0]), int(bottomL[1]))
             tl = (int(topL[0]), int(topL[1]))
             
-            # tr = tr
-            # br = br
-            # bl = bl
-            # tl = tl
-            
             cv2.line(image, tl, tr, (0,255,0), 10)
             cv2.line(image, tr, br, (0,255,0), 10)
             cv2.line(image, br, bl, (0,255,0), 10)
