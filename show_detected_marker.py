@@ -36,9 +36,9 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Arguments for Displacement Measurement')
 
-# img path (폴더 지정해주기)
+# img path (폴더 지정해주기) default 부분을 폴더명으로 지정해주시면 됩니다.
 parser.add_argument(
-    '--img_path', type=str, default="multiple_exp_97",
+    '--img_path', type=str, default="compare",
     help='Directory of Images for Displacement Measurement'
 )
 # img 파일 형식 지정
@@ -47,7 +47,7 @@ parser.add_argument(
     help='Image File Extension'
 )
 
-# 타겟 크기 지정
+# 타겟 크기 지정 단위는 mm이며, 마커의 크기가 바뀔때마다 default를 수정해주시면 됩니다.
 parser.add_argument(
     '--p_length', type=int, default=50,
     help='target size to milimeter'
