@@ -5,7 +5,7 @@ from utils import aruco_display,homography_transformation
 import matplotlib.pyplot as plt
 from glob import glob
 
-# class cornersdp :
+# ArUco Marker 의 정보를 cv2 에서 불러옵니다.
 
 ARUCO_DICT = {
     "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
@@ -38,7 +38,7 @@ parser = argparse.ArgumentParser(description='Arguments for Displacement Measure
 
 # img path (폴더 지정해주기)
 parser.add_argument(
-    '--img_path', type=str, default="compare",
+    '--img_path', type=str, default="homo",
     help='Directory of Images for Displacement Measurement'
 )
 # img 파일 형식 지정
@@ -47,7 +47,7 @@ parser.add_argument(
     help='Image File Extension'
 )
 
-# 타겟 크기 지정
+# 타겟 크기 지정 (단위: mm)
 parser.add_argument(
     '--p_length', type=int, default=50,
     help='target size to milimeter'

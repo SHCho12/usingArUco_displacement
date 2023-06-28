@@ -4,6 +4,7 @@ import os
 from utils import  draw_markers
 import matplotlib.pyplot as plt
 from glob import glob
+from utils import homography_transformation
 
 # class cornersdp :
 
@@ -38,7 +39,7 @@ parser = argparse.ArgumentParser(description='Arguments for Displacement Measure
 
 # img path (폴더 지정해주기) default 부분을 폴더명으로 지정해주시면 됩니다.
 parser.add_argument(
-    '--img_path', type=str, default="compare",
+    '--img_path', type=str, default="homo",
     help='Directory of Images for Displacement Measurement'
 )
 # img 파일 형식 지정
@@ -70,12 +71,12 @@ def main():
     arucoParams = cv2.aruco.DetectorParameters()
 	
     for img_path in disp_img_list[0:]:
-        target_image = cv2.imread(img_path)
+        target_image = cv2.imread(img_path[0])
         corners, ids, rejected = cv2.aruco.detectMarkers(target_image, arucoDict, parameters=arucoParams)
         detected_markers = draw_markers(corners, ids, rejected, target_image)
         
-        detected_markers = cv2.resize(detected_markers, (2000, 1500), interpolation=cv2.INTER_CUBIC)
-        cv2.imshow("Image", detected_markers)
+        detected_markers_resized = cv2.resize(detected_markers, (1000, 750), interpolation=cv2.INTER_CUBIC)
+        cv2.imshow("Image", detected_markers_resized)
         cv2.waitKey(0)
     
                 
