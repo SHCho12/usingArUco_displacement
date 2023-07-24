@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import copy
-from utils import aruco_display, homography_harris, harris, get_homography_transform
+from utils import aruco_display, harris
 
 ARUCO_DICT = {
     "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
@@ -31,14 +31,15 @@ aruco_type = "DICT_4X4_1000"
 arucoDict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT.get(aruco_type))
 arucoParams = cv2.aruco.DetectorParameters()
 
+
 # 이미지 경로
-image = cv2.imread("homo/DSCN0035.JPG")
+image = cv2.imread(r"DSCN0006.JPG")
 
 # 이미지 크기 조정 (원본 크기 유지)
 imageview = copy.deepcopy(image)
-resized_image = cv2.resize(image, (0, 0), fx=0.2, fy=0.2)
+detector = cv2.aruco.ArucoDetector(arucoDict, arucoParams)
+corners, ids, rejected = detector.detectMarkers(imageview)
 
-corners, ids, rejected = cv2.aruco.detectMarkers(image, arucoDict, parameters=arucoParams)
 detected_markers, topRight, bottomRight, bottomLeft, topLeft = aruco_display(corners, ids, rejected, image)
 corners = np.array([topLeft, bottomLeft, topRight, bottomRight])
 sorted_corners = sorted(corners, key=lambda x: (x[0], x[1]))
@@ -48,15 +49,17 @@ x_mx = sorted_corners[3][0]
 y_mn = sorted_corners2[0][1]
 y_mx = sorted_corners2[3][1]
 
-roi = resized_image[y_mn:y_mx, x_mn:x_mx]
+roi = imageview[y_mn-50:y_mx+50, x_mn-50:x_mx+50]
 m_filt_cn = harris(roi)
-
+print(f"len : {len(m_filt_cn)}")
 # 원본 이미지에 코너 시각화
 for corner in m_filt_cn:
-    x, y = corner[0] + x_mn, corner[1] + y_mn
-    cv2.circle(resized_image, (x, y), 3, (0, 255, 0), -1)
-    cv2.putText(resized_image, f"({x}, {y})", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+    print(corner)
+    x, y = corner[1] + x_mn-50  , corner[0] + y_mn-50
+    cv2.circle(imageview, (x, y), 10, (0, 255, 0), -1)
+    cv2.putText(imageview, f"({x}, {y})", (x, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
+resized_image = cv2.resize(imageview, (0, 0), fx=0.3, fy=0.3)
 # 결과 이미지 출력
 cv2.imshow('Corners', resized_image)
 cv2.waitKey(0)

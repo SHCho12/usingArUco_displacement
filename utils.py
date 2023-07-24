@@ -10,7 +10,7 @@ import time
 import re
 import ast
 import io
-
+import copy
 import os.path as osp
 import numpy as np
 import pandas as pd
@@ -34,11 +34,154 @@ def harris(roi):
     corners = cv2.cornerHarris(gray_roi, block_size, ksize, k)
     print(type(corners))
     # 코너 강도 조건 설정
-    threshold = 0.1
+    threshold = 0.001
     filtered_corners = np.argwhere(corners > threshold * corners.max())
 
-
+    print(f"Number of corners: {len(filtered_corners)}")
     return filtered_corners
+
+def homography_harris(datum_point, h_matrix, dest_cn, filt_cn): 
+        
+    
+        # x value를 기준으로 sort 진행
+        dest_cn = order_points(dest_cn)
+        # filt_cn = order_points(filt_cn)
+
+        preprocessed_points = []
+        for point in filt_cn:
+            # 개별 점을 동차 좌표로 변환
+            filt_vec = np.array([[point[0]], [point[1]], [1]])
+            transformed_point = np.dot(h_matrix, filt_vec)
+            transformed_point = transformed_point / transformed_point[2]  # 정규화
+            preprocessed_points.append(transformed_point)
+        # print(f"num1: {len(preprocessed_points)}")
+        for point in dest_cn:
+            dest_vec = np.array([[point[0]], [point[1]], [1]])
+            transformed_points = np.dot(h_matrix, dest_vec)
+            transformed_points = transformed_points / transformed_points[2]
+            preprocessed_points.append(transformed_points)   # ArUco마커의 코너까지 변위 계산에 사용
+        # print(f"num2: {len(preprocessed_points)}")
+        total_x = 0
+        total_y = 0
+
+        # preprocessed_points 리스트를 순회합니다.
+        for point in preprocessed_points:
+            x = point[0]
+            y = point[1]
+            
+            # X와 Y 좌표를 누적시킵니다.
+            total_x += x
+            total_y += y
+
+        # 평균점을 계산합니다.
+        num_points = len(preprocessed_points)
+        average_x = total_x / num_points
+        average_y = total_y / num_points
+        
+        # 평균점을 numpy 배열로 생성합니다.
+        average_point = np.array([[average_x], [average_y], [1]])
+        ## 결과 도출 - result
+
+        result = average_point - datum_point
+
+        return result[:2]        
+
+def get_homography_transform(corners, p_length) : 
+        
+        cn_matrix = np.array([
+            [np.array(corners[0][0]), np.array(corners[0][1])],
+            [np.array(corners[1][0]), np.array(corners[1][1])],
+            [np.array(corners[2][0]), np.array(corners[2][1])],
+            [np.array(corners[3][0]), np.array(corners[3][1])]
+        ])
+        
+        # x value를 기준으로 sort 진행
+        cn_matrix = order_points(cn_matrix)
+
+
+        # p_length에 따른 weight matrix 생성
+        wc = np.array([
+            [0, 0],
+            [0, p_length],
+            [p_length, 0],
+            [p_length, p_length]
+        ])
+        
+        # findHomography(src, desc, ...) 이용해서 호모그래피 matrix 찾기
+        h_matrix, _ = cv2.findHomography(cn_matrix, wc)
+        # print(f"h_matrix : {h_matrix}")
+        return h_matrix  
+
+def find_best_match(h_matrix, answer_corners, harris_corners):
+    designated_points = []
+    for corner in answer_corners:
+        x, y = corner[1], corner[0]  
+        corn_vec = np.array([[x], [y], [1]])
+        trans_corn = np.dot(h_matrix, corn_vec)
+        trans_corn = np.divide(trans_corn, trans_corn[2])
+        
+        for corner in harris_corners:
+            h_x, h_y = corner[1], corner[0]  
+            distance = np.sqrt((trans_corn[0] - h_x) ** 2 + (trans_corn[1] - h_y) ** 2)
+            min_distance = float('inf')
+            min_distance1 = copy.deepcopy(min_distance)     
+            if distance < min_distance1:
+                        min_distance1 = distance
+                        designated_point = corner
+        
+        designated_points.append(designated_point)
+ 
+
+    return designated_points
+
+
+def best_match(A, harris_corners):
+    x, y = A[0], A[1]
+    mindistance = float('inf')
+    designated_point = None
+
+    for corner in harris_corners:
+        h_x,h_y = corner[1], corner[0]
+        distance = np.sqrt((x - h_x) ** 2 + (y - h_y) ** 2)
+        
+        if distance < mindistance:
+            mindistance = distance
+            designated_point = corner
+
+    return designated_point
+
+        
+
+
+
+
+
+
+def get_image_homography(corners, p_length) : 
+        
+        cn_matrix = np.array([
+            [np.array(corners[0][0]), np.array(corners[0][1])],
+            [np.array(corners[1][0]), np.array(corners[1][1])],
+            [np.array(corners[2][0]), np.array(corners[2][1])],
+            [np.array(corners[3][0]), np.array(corners[3][1])]
+        ])
+        
+        # x value를 기준으로 sort 진행
+        cn_matrix = order_points(cn_matrix)
+        # print(f"cn_matrix : {cn_matrix}")
+
+        # p_length에 따른 weight matrix 생성
+        wc = np.array([
+            [0, 0],
+            [0, p_length],
+            [p_length, 0],
+            [p_length, p_length]
+        ])
+        
+        # findHomography(src, desc, ...) 이용해서 호모그래피 matrix 찾기
+        h_matrix, _ = cv2.findHomography(wc, cn_matrix)
+
+        return h_matrix  
 
 def aruco_display(corners, ids, rejected, image):
     
@@ -151,31 +294,7 @@ def get_displacements(h_matrix, dest_cn, p_length) :
         return result[:2]        
 
 
-def get_homography_transform(corners, p_length) : 
-        
-        cn_matrix = np.array([
-            [np.array(corners[0][0]), np.array(corners[0][1])],
-            [np.array(corners[1][0]), np.array(corners[1][1])],
-            [np.array(corners[2][0]), np.array(corners[2][1])],
-            [np.array(corners[3][0]), np.array(corners[3][1])]
-        ])
-        
-        # x value를 기준으로 sort 진행
-        cn_matrix = order_points(cn_matrix)
 
-
-        # p_length에 따른 weight matrix 생성
-        wc = np.array([
-            [0, 0],
-            [0, p_length],
-            [p_length, 0],
-            [p_length, p_length]
-        ])
-        
-        # findHomography(src, desc, ...) 이용해서 호모그래피 matrix 찾기
-        h_matrix = findProjectiveTransform(cn_matrix, wc).T
-
-        return h_matrix    
 def homography_transformation(corners, dest_cn, p_length) : 
         
         cn_matrix = np.array([
@@ -229,51 +348,6 @@ def homography_transformation(corners, dest_cn, p_length) :
 
         return h_matrix, result[:2]   
    
-def homography_harris(datum_point, h_matrix, dest_cn, filt_cn): 
-        
-    
-        # x value를 기준으로 sort 진행
-        dest_cn = order_points(dest_cn)
-        # filt_cn = order_points(filt_cn)
-
-        preprocessed_points = []
-        for point in filt_cn:
-            # 개별 점을 동차 좌표로 변환
-            filt_vec = np.array([[point[0]], [point[1]], [1]])
-            transformed_point = np.dot(h_matrix, filt_vec)
-            transformed_point = transformed_point / transformed_point[2]  # 정규화
-            preprocessed_points.append(transformed_point)
-        print(f"num1: {len(preprocessed_points)}")
-        for point in dest_cn:
-            dest_vec = np.array([[point[0]], [point[1]], [1]])
-            transformed_points = np.dot(h_matrix, dest_vec)
-            transformed_points = transformed_points / transformed_points[2]
-            preprocessed_points.append(transformed_points)   # ArUco마커의 코너까지 변위 계산에 사용
-        print(f"num2: {len(preprocessed_points)}")
-        total_x = 0
-        total_y = 0
-
-        # preprocessed_points 리스트를 순회합니다.
-        for point in preprocessed_points:
-            x = point[0]
-            y = point[1]
-            
-            # X와 Y 좌표를 누적시킵니다.
-            total_x += x
-            total_y += y
-
-        # 평균점을 계산합니다.
-        num_points = len(preprocessed_points)
-        average_x = total_x / num_points
-        average_y = total_y / num_points
-        
-        # 평균점을 numpy 배열로 생성합니다.
-        average_point = np.array([[average_x], [average_y], [1]])
-        ## 결과 도출 - result
-
-        result = average_point - datum_point
-
-        return result[:2]        
 
 def plotAPCA(op, X1, PC, Q, anomal_occur): 
     

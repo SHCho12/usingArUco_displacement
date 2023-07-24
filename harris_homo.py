@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import os
-from utils import aruco_display, homography_harris, harris, get_homography_transform
+from utils import aruco_display, homography_harris, harris, get_homography_transform, get_image_homography
 import matplotlib.pyplot as plt
 from glob import glob
 
@@ -38,7 +38,7 @@ parser = argparse.ArgumentParser(description='Arguments for Displacement Measure
 
 # img path (폴더 지정해주기)
 parser.add_argument(
-    '--img_path', type=str, default="homo",
+    '--img_path', type=str, default="harris",
     help='Directory of Images for Displacement Measurement'
 )
 # img 파일 형식 지정
@@ -49,7 +49,7 @@ parser.add_argument(
 
 # 타겟 크기 지정 (단위: mm)
 parser.add_argument(
-    '--p_length', type=int, default=50,
+    '--p_length', type=int, default=60,
     help='target size to milimeter'
 )
 
@@ -71,7 +71,8 @@ def main():
     
     # 기준 사진으로 기준 점 제작
     disp_img = cv2.imread(disp_img_list[0])
-    corners, ids, rejected = cv2.aruco.detectMarkers(disp_img, arucoDict, parameters=arucoParams)
+    detector = cv2.aruco.ArucoDetector(arucoDict, arucoParams)
+    corners, ids, rejected = detector.detectMarkers(disp_img)
     detected_markers, topRight, bottomRight, bottomLeft, topLeft = aruco_display(corners, ids, rejected, disp_img)
     corners = np.array([topLeft, bottomLeft, topRight, bottomRight])
     # print(f"corners : {corners}")
@@ -82,22 +83,24 @@ def main():
     y_mn = sorted_corners2[0][1]
     y_mx = sorted_corners2[3][1]
 
-    m_roi = disp_img[y_mn:y_mx, x_mn:x_mx]
+    m_roi = disp_img[y_mn-20:y_mx+20, x_mn-20:x_mx+20]
     m_filt_cn = harris(m_roi)
 
     # 호모그래피 행렬 저장
     h_matrix = get_homography_transform(corners, p_length)
+    i_matrix = get_image_homography(corners, p_length)
+    # world coordinate -> image coordinate
 
     #
     datum_list = []
     for point in corners:
-        corn_vec = np.array([[point[0]], [point[1]], [1]], dtype=object)
+        corn_vec = np.array([[point[0]], [point[1]], [1]])
         trans_corn = np.dot(h_matrix, corn_vec)
         trans_corn = trans_corn/trans_corn[2]
         datum_list.append(trans_corn)
     # print(f"num1: {len(datum_list)}")
     for point in m_filt_cn:
-        m_filt_vec = np.array([[point[0]], [point[1]], [1]], dtype=object)
+        m_filt_vec = np.array([[point[0]], [point[1]], [1]])
         trans_m_filt = np.dot(h_matrix, m_filt_vec)
         trans_m_filt = trans_m_filt/trans_m_filt[2]
         datum_list.append(trans_m_filt)
@@ -115,18 +118,18 @@ def main():
     # print(f"num : {num_datum}")
     ave_x = total_x/num_datum
     ave_y = total_y/num_datum
-    datum_point = np.array([[ave_x], [ave_y], [1]], dtype=object)
+    datum_point = np.array([[ave_x], [ave_y], [1]])
     # print(f"datum_point : {datum_point}")
     # h_matrix_list = []
     displacement_list = []
 
     for img_path in disp_img_list[0:]:
         target_image = cv2.imread(img_path)
-        target_points, target_ids, target_rejected = cv2.aruco.detectMarkers(target_image, arucoDict, parameters=arucoParams)
+        target_points, target_ids, target_rejected = detector.detectMarkers(target_image)
         detected_img, target_TR, target_BR, target_BL, target_TL = aruco_display(target_points, target_ids, target_rejected, target_image)
     
 
-        dest_cn = np.array([target_TL, target_BL, target_TR, target_BR], dtype=object)
+        dest_cn = np.array([target_TL, target_BL, target_TR, target_BR])
 
         sorted_points = sorted(dest_cn, key=lambda x: x[0])
         sorted_points2 = sorted(dest_cn, key=lambda y: y[1])
@@ -136,16 +139,13 @@ def main():
         y_min = sorted_points2[0][1]
         y_max = sorted_points2[3][1]
         # print(f"x_min: {x_min}")
-        roi = target_image[y_min:y_max+1, x_min:x_max+1]
+        roi = target_image[y_min-20:y_max+20, x_min-20:x_max+20]
         filt_cn = harris(roi)
 
         
         displacement  = homography_harris(datum_point, h_matrix, dest_cn, filt_cn) 
         displacement_list.append(displacement)
-        # h_matrix_list.append(h_matrix)
-    
-    # print(f"호모그래피 행렬: {h_matrix_list}")
-    # print(f"계측된 변위 : {displacement_list}")
+       
     
     x_list=[]
     y_list=[]

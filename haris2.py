@@ -52,11 +52,11 @@ y_mx = sorted_corners2[3][1]
 
 
 roi = resized_image[y_mn:y_mx, x_mn:x_mx]
-m_filt_cn = harris(m_roi)
+m_filt_cn = harris(roi)
 
 # 원본 이미지에 코너 시각화
-for corner in filtered_corners:
-    x, y = corner[1] + x_min, corner[0] + y_min
+for corner in m_filt_cn:
+    x, y = corner[1] + x_mn, corner[0] + y_mn
     cv2.circle(resized_image, (x, y), 3, (0, 255, 0), -1)
     cv2.putText(resized_image, f"({x}, {y})", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
