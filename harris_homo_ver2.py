@@ -83,8 +83,6 @@ def main():
 
     for img_path in disp_img_list[0:]:
         answer_corners = np.array([
-            [0, 0],
-            [60, 0],
             [10, 10],
             [20, 10],
             [30, 10],
@@ -99,9 +97,7 @@ def main():
             [40, 40],
             [50, 40],
             [30, 50],
-            [40, 50],
-            [0, 60],
-            [60, 60]
+            [40, 50]
         ], dtype=np.float32)
         target_image = cv2.imread(img_path)
         target_points, target_ids, target_rejected = detector.detectMarkers(target_image)
@@ -109,15 +105,17 @@ def main():
         dest_cn = np.array([target_TL, target_BL, target_TR, target_BR])
         sorted_points = sorted(dest_cn, key=lambda x: x[0])
         sorted_points2 = sorted(dest_cn, key=lambda y: y[1])
+
+        dest_list = dest_cn.tolist()
         # ROI 영역 설정
         x_min = sorted_points[0][0]
         x_max = sorted_points[3][0]
         y_min = sorted_points2[0][1]
         y_max = sorted_points2[3][1]
         # print(f"x_min: {x_min}")
-        roi = target_image[y_min-50:y_max+50, x_min-50:x_max+50]
+        roi = target_image[y_min:y_max, x_min:x_max]
         filt_cn = harris(roi)
-        filt_cn = filt_cn + np.array([[y_min-50, x_min-50]])
+        filt_cn = filt_cn + np.array([[y_min, x_min]])
         i_matrix = get_image_homography(dest_cn, p_length)
 
         A = []
@@ -146,8 +144,16 @@ def main():
             total_x += x
             total_y += y
 
-        average_x = total_x / num_points
-        average_y = total_y / num_points
+        for point in dest_list:
+            x = point[0]
+            y = point[1]
+
+            total_x += x
+            total_y += y
+
+
+        average_x = total_x / (num_points + 4)
+        average_y = total_y / (num_points + 4)
         average_x = int(average_x)
         average_y = int(average_y)
 
