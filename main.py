@@ -4,6 +4,7 @@ import os
 from utils import aruco_display,get_homography_transform
 import matplotlib.pyplot as plt
 from glob import glob
+import mplcursors
 
 # ArUco Marker 의 정보를 cv2 에서 불러옵니다.
 
@@ -38,7 +39,7 @@ parser = argparse.ArgumentParser(description='Arguments for Displacement Measure
 
 # img path (폴더 지정해주기)
 parser.add_argument(
-    '--img_path', type=str, default="harris",
+    '--img_path', type=str, default="h_s_10",
     help='Directory of Images for Displacement Measurement'
 )
 # img 파일 형식 지정
@@ -113,40 +114,38 @@ def main():
 
     print(f"displacement_list : {wc_list}")
 
-    # print(f"계측된 변위 : {displacement_list}")
-    
-    # x_list=[]
-    # y_list=[]
-    # for i in displacement_list:
-    #     pass
-    #     print(i)
-    #     print(type(i))
-    #     x_list.append(float(i[0]))
-    #     y_list.append(float(i[1]))
+    reference = wc_list[0]
+    x_deviation = [0] + [d[0][0] - reference[0][0] for d in wc_list[1:]]
+    y_deviation = [0] + [d[1][0] - reference[1][0] for d in wc_list[1:]]
 
-    # print(f"x: {x_list}, y: {y_list}") 
-    
-    # a = len(displacement_list)
-    # b = list(range(a))
+    # 그래프 생성
+    plt.figure(figsize=(10, 6))
 
+    # x 편차 그래프 생성
+    plt.subplot(1, 2, 1)
+    plt.plot(x_deviation, marker='o', color='blue')
+    plt.title('X Deviation from Reference')
+    plt.xlabel('Index')
+    plt.ylabel('X Deviation')
 
-    # plt.xlabel("Image")
-    # plt.ylabel("displacement")    
-    # plt.plot(b, x_list, "bo--", label="x", marker="8")
-    # plt.plot(b, y_list, "ro--", label="y", marker="^")
-    # plt.title("Displacement")
-    # for i, v in enumerate(b):
-    #     plt.text(v, x_list[i], x_list[i],
-    #              color='blue',
-    #              horizontalalignment='center',
-    #              verticalalignment = 'top')
-    #     plt.text(v, y_list[i], y_list[i],
-    #              color='red',
-    #              horizontalalignment='center',
-    #              verticalalignment='bottom')                      
-    # plt.legend()
-    # plt.show()
+    # 각 점에 값을 표시
+    for i, txt in enumerate(x_deviation):
+        plt.annotate(f"{txt:.2f}", (i, x_deviation[i]), textcoords="offset points", xytext=(0, 10), ha='center')
 
-    
+    # y 편차 그래프 생성
+    plt.subplot(1, 2, 2)
+    plt.plot(y_deviation, marker='o', color='orange')
+    plt.title('Y Deviation from Reference')
+    plt.xlabel('Index')
+    plt.ylabel('Y Deviation')
+
+    # 각 점에 값을 표시
+    for i, txt in enumerate(y_deviation):
+        plt.annotate(f"{txt:.2f}", (i, y_deviation[i]), textcoords="offset points", xytext=(0, 10), ha='center')
+
+    plt.tight_layout()
+    plt.show()
+        
+                    
 if __name__ == "__main__" :
     main()
