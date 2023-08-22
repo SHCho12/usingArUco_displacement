@@ -4,6 +4,7 @@ import os
 from utils import aruco_display, harris, get_homography_transform, best_match, get_image_homography
 import matplotlib.pyplot as plt
 from glob import glob
+from tqdm import tqdm
 
 # ArUco Marker 의 정보를 cv2 에서 불러옵니다.
 
@@ -38,7 +39,7 @@ parser = argparse.ArgumentParser(description='Arguments for Displacement Measure
 
 # img path (폴더 지정해주기)
 parser.add_argument(
-    '--img_path', type=str, default="h_s_10",
+    '--img_path', type=str, default="v_s_10",
     help='Directory of Images for Displacement Measurement'
 )
 # img 파일 형식 지정
@@ -81,7 +82,7 @@ def main():
 
     wc_list = []
 
-    for img_path in disp_img_list[0:]:
+    for img_path in tqdm(disp_img_list[0:]):
         answer_corners = np.array([
             [10, 10],
             [20, 10],
@@ -113,9 +114,9 @@ def main():
         y_min = sorted_points2[0][1]
         y_max = sorted_points2[3][1]
         # print(f"x_min: {x_min}")
-        roi = target_image[y_min+30:y_max-30, x_min+30:x_max-30]
+        roi = target_image[y_min:y_max, x_min:x_max]
         filt_cn = harris(roi)
-        filt_cn = filt_cn + np.array([[y_min+30, x_min+30]])
+        filt_cn = filt_cn + np.array([[y_min, x_min]])
         i_matrix = get_image_homography(dest_cn, p_length)
 
         A = []
@@ -173,9 +174,9 @@ def main():
     # x 편차 그래프 생성
     plt.subplot(1, 2, 1)
     plt.plot(x_deviation, marker='o', color='blue')
-    plt.title('X Deviation from Reference')
+    plt.title('X Displacement from Reference')
     plt.xlabel('Index')
-    plt.ylabel('X Deviation')
+    plt.ylabel('X Displacement')
 
     # 각 점에 값을 표시
     for i, txt in enumerate(x_deviation):
@@ -184,9 +185,9 @@ def main():
     # y 편차 그래프 생성
     plt.subplot(1, 2, 2)
     plt.plot(y_deviation, marker='o', color='orange')
-    plt.title('Y Deviation from Reference')
+    plt.title('Y Displacement from Reference')
     plt.xlabel('Index')
-    plt.ylabel('Y Deviation')
+    plt.ylabel('Y Displacement')
 
     # 각 점에 값을 표시
     for i, txt in enumerate(y_deviation):

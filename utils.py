@@ -191,7 +191,7 @@ def aruco_display(corners, ids, rejected, image):
 
         for (markerCorner, markerID) in zip(corners, ids):
             corners = markerCorner.reshape((4, 2))
-            print(corners)           
+            # print(corners)           
             (topL, topR, bottomR, bottomL) = corners
            
 

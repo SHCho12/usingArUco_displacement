@@ -38,7 +38,7 @@ parser = argparse.ArgumentParser(description='Arguments for Displacement Measure
 
 # img path (폴더 지정해주기)
 parser.add_argument(
-    '--img_path', type=str, default="harris",
+    '--img_path', type=str, default="non_focus_1",
     help='Directory of Images for Displacement Measurement'
 )
 # img 파일 형식 지정

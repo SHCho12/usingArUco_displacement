@@ -4,7 +4,7 @@ import os
 from utils import aruco_display,get_homography_transform
 import matplotlib.pyplot as plt
 from glob import glob
-import mplcursors
+
 
 # ArUco Marker 의 정보를 cv2 에서 불러옵니다.
 
@@ -39,7 +39,7 @@ parser = argparse.ArgumentParser(description='Arguments for Displacement Measure
 
 # img path (폴더 지정해주기)
 parser.add_argument(
-    '--img_path', type=str, default="h_s_10",
+    '--img_path', type=str, default="aperture_30",
     help='Directory of Images for Displacement Measurement'
 )
 # img 파일 형식 지정
@@ -124,9 +124,9 @@ def main():
     # x 편차 그래프 생성
     plt.subplot(1, 2, 1)
     plt.plot(x_deviation, marker='o', color='blue')
-    plt.title('X Deviation from Reference')
+    plt.title('X Displacement from Reference')
     plt.xlabel('Index')
-    plt.ylabel('X Deviation')
+    plt.ylabel('X Displacement')
 
     # 각 점에 값을 표시
     for i, txt in enumerate(x_deviation):
@@ -135,9 +135,9 @@ def main():
     # y 편차 그래프 생성
     plt.subplot(1, 2, 2)
     plt.plot(y_deviation, marker='o', color='orange')
-    plt.title('Y Deviation from Reference')
+    plt.title('Y Displacement from Reference')
     plt.xlabel('Index')
-    plt.ylabel('Y Deviation')
+    plt.ylabel('Y Displacement')
 
     # 각 점에 값을 표시
     for i, txt in enumerate(y_deviation):
