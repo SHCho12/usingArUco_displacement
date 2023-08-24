@@ -4,6 +4,7 @@ import os
 from utils import aruco_display,get_homography_transform
 import matplotlib.pyplot as plt
 from glob import glob
+from tqdm import tqdm
 
 
 # ArUco Marker 의 정보를 cv2 에서 불러옵니다.
@@ -39,7 +40,7 @@ parser = argparse.ArgumentParser(description='Arguments for Displacement Measure
 
 # img path (폴더 지정해주기)
 parser.add_argument(
-    '--img_path', type=str, default="aperture_30",
+    '--img_path', type=str, default="v_s_10",
     help='Directory of Images for Displacement Measurement'
 )
 # img 파일 형식 지정
@@ -81,7 +82,7 @@ def main():
     h_matrix = get_homography_transform(corners, p_length)
     
     wc_list = []
-    for img_path in disp_img_list[0:]:
+    for img_path in tqdm(disp_img_list[0:]):
         target_image = cv2.imread(img_path)
         target_points, target_ids, target_rejected = detector.detectMarkers(target_image)
         detected_markers_2,target_TR, target_BR, target_TL, target_BL = aruco_display(target_points, target_ids, target_rejected, target_image)

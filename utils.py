@@ -32,12 +32,12 @@ def harris(roi):
     ksize = 3
     k = 0.04
     corners = cv2.cornerHarris(gray_roi, block_size, ksize, k)
-    print(type(corners))
+    # print(type(corners))
     # 코너 강도 조건 설정
     threshold = 0.001
     filtered_corners = np.argwhere(corners > threshold * corners.max())
 
-    print(f"Number of corners: {len(filtered_corners)}")
+    #print(f"Number of corners: {len(filtered_corners)}")
     return filtered_corners
 
 def homography_harris(datum_point, h_matrix, dest_cn, filt_cn): 

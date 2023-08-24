@@ -76,14 +76,8 @@ def main():
     corners, ids, rejected = detector.detectMarkers(disp_img)
     detected_markers, topRight, bottomRight, bottomLeft, topLeft = aruco_display(corners, ids, rejected, disp_img)
     corners = np.array([topLeft, bottomLeft, topRight, bottomRight])
-
-    # 호모그래피 행렬 저장
-    h_matrix = get_homography_transform(corners, p_length)
-
-    wc_list = []
-
-    for img_path in tqdm(disp_img_list[0:]):
-        answer_corners = np.array([
+    
+    answer_corners = np.array([
             [10, 10],
             [20, 10],
             [30, 10],
@@ -100,6 +94,14 @@ def main():
             [30, 50],
             [40, 50]
         ], dtype=np.float32)
+    
+    # 호모그래피 행렬 저장
+    h_matrix = get_homography_transform(corners, p_length)
+
+    wc_list = []
+
+    for img_path in tqdm(disp_img_list[0:]):
+        
         target_image = cv2.imread(img_path)
         target_points, target_ids, target_rejected = detector.detectMarkers(target_image)
         detected_img, target_TR, target_BR, target_BL, target_TL = aruco_display(target_points, target_ids, target_rejected, target_image)
@@ -107,7 +109,7 @@ def main():
         sorted_points = sorted(dest_cn, key=lambda x: x[0])
         sorted_points2 = sorted(dest_cn, key=lambda y: y[1])
 
-        dest_list = dest_cn.tolist()
+        
         # ROI 영역 설정
         x_min = sorted_points[0][0]
         x_max = sorted_points[3][0]
@@ -133,7 +135,7 @@ def main():
             designated_point = best_match(corner, filt_cn)
             designated_points.append(designated_point)
         num_points = len(designated_points)  
-        print(f"num_point 개 수 : {num_points}")
+        #print(f"num_point 개 수 : {num_points}")
 
         total_x = 0
         total_y = 0
