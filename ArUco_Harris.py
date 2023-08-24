@@ -39,7 +39,7 @@ parser = argparse.ArgumentParser(description='Arguments for Displacement Measure
 
 # img path (폴더 지정해주기)
 parser.add_argument(
-    '--img_path', type=str, default="v_s_10",
+    '--img_path', type=str, default="high_55m_fl_3000_2",
     help='Directory of Images for Displacement Measurement'
 )
 # img 파일 형식 지정
@@ -77,24 +77,27 @@ def main():
     detected_markers, topRight, bottomRight, bottomLeft, topLeft = aruco_display(corners, ids, rejected, disp_img)
     corners = np.array([topLeft, bottomLeft, topRight, bottomRight])
     
-    answer_corners = np.array([
-            [10, 10],
-            [20, 10],
-            [30, 10],
-            [50, 10],
-            [10, 20],
-            [20, 20],
-            [30, 20],
-            [40, 20],
-            [20, 30],
-            [30, 30],
-            [40, 30],
-            [40, 40],
-            [50, 40],
-            [30, 50],
-            [40, 50]
+    x = p_length
+    aruco_0 = np.array([
+            [x/6, x/6],
+            [2*x/6, x/6],
+            [3*x/6, x/6],
+            [5*x/6, x/6],
+            [x/6, 2*x/6],
+            [2*x/6, 2*x/6],
+            [3*x/6, 2*x/6],
+            [4*x/6, 2*x/6],
+            [2*x/6, 3*x/6],
+            [3*x/6, 3*x/6],
+            [4*x/6, 3*x/6],
+            [4*x/6, 4*x/6],
+            [5*x/6, 4*x/6],
+            [3*x/6, 5*x/6],
+            [4*x/6, 5*x/6]
         ], dtype=np.float32)
     
+    answer_corners = aruco_0
+
     # 호모그래피 행렬 저장
     h_matrix = get_homography_transform(corners, p_length)
 
