@@ -170,8 +170,8 @@ def main():
         
     print(f"displacement_list : {wc_list}")
     reference = wc_list[0]
-    x_deviation = [0] + [d[0][0] - reference[0][0] for d in wc_list[1:]]
-    y_deviation = [0] + [d[1][0] - reference[1][0] for d in wc_list[1:]]
+    x_deviation = [0] + [reference[0][0] - d[0][0] for d in wc_list[1:]]
+    y_deviation = [0] + [reference[1][0] - d[1][0] for d in wc_list[1:]]
 
     # 그래프 생성
     plt.figure(figsize=(10, 6))
